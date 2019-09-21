@@ -1,8 +1,15 @@
-FROM maven:3.3-jdk-8-alpine
-
+FROM maven:3.6.2-jdk-8-slim AS MAVEN_PACKAGE
 MAINTAINER  Sonam Agarwal <c2.sonam@gmail.com>
-WORKDIR /
-COPY pom.xml /pom.xml
-COPY src/ /src
-RUN mvn clean install
-CMD ["java","-jar","/target/TicklingClockApplication-1.0-SNAPSHOT.jar"]
+WORKDIR /tmp/
+COPY pom.xml /tmp/
+COPY src /tmp/src/
+RUN mvn package
+
+FROM openjdk:8-jdk-slim
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+COPY --from=MAVEN_PACKAGE /tmp/target/TicklingClockApplication*.jar TicklingClockApplication.jar
+
+CMD ["java","-jar","TicklingClockApplication.jar"]
+#CMD ["bash"]
